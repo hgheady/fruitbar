@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 93ff451de686f0477e8ecfcf86eade9f2b8971d1860bae4f784dfbf32cebaeea
+-- hash: 56b04a5b8678f10b9d8e0d55aaa2b5d424dbb12d874ed8f54c7cf03d52dfc451
 
 name:           meatbar
 version:        0.1.0.0
@@ -37,6 +37,8 @@ library
     , bytestring
     , cassava
     , persistent
+    , persistent-sqlite
+    , persistent-template
     , scotty
     , text
     , time
@@ -56,6 +58,8 @@ executable meatbar-exe
     , cassava
     , meatbar
     , persistent
+    , persistent-sqlite
+    , persistent-template
     , scotty
     , text
     , time
@@ -76,6 +80,8 @@ test-suite meatbar-test
     , cassava
     , meatbar
     , persistent
+    , persistent-sqlite
+    , persistent-template
     , scotty
     , text
     , time
