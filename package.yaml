@@ -24,6 +24,8 @@ dependencies:
 - bytestring
 - cassava
 - persistent
+- persistent-sqlite
+- persistent-template
 - scotty
 - text
 - time
