@@ -31,8 +31,6 @@ import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
 
--- main :: IO ()
--- main = someFunc
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Person
@@ -68,8 +66,7 @@ main = runSqlite ":memory:" $ do
     Left err -> liftIO $ putStrLn err
     Right (_, v) -> V.forM_ v $ \ p -> do
       pid <- insert $ Person $ name p
-      _   <- insert $ Consumption pid (bar p) (time p)
-      pure ()
+      insert $ Consumption pid (bar p) (time p)
 
   people <- selectList [] []
   liftIO $ print (people :: [Entity Person])
