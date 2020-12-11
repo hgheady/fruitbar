@@ -27,9 +27,9 @@ import Data.Time
 import Data.Time.Format.ISO8601
 import Data.Time (UTCTime)
 import qualified Data.Vector as V
-import           Database.Persist
-import           Database.Persist.Sqlite
-import           Database.Persist.TH
+import Database.Persist
+import Database.Persist.Sqlite
+import Database.Persist.TH
 
 -- main :: IO ()
 -- main = someFunc
@@ -38,22 +38,22 @@ share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Person
     name String
     deriving Show
-ConsumptionDB
+Consumption
     personId PersonId
     meat String
     time UTCTime
 |]
 
-data Consumption = Consumption
+data ConsumptionDTO = ConsumptionDTO
     { name :: !String
     , bar  :: !String
     , time :: !UTCTime
     }
 
-instance FromNamedRecord Consumption where
+instance FromNamedRecord ConsumptionDTO where
     parseNamedRecord r = r .: "date" >>= \s -> case iso8601ParseM s of
       Just (t :: UTCTime) ->
-        Consumption
+        ConsumptionDTO
         <$> r .: "person"
         <*> r .: "meat-bar-type"
         <*> pure t
@@ -62,11 +62,15 @@ instance FromNamedRecord Consumption where
 main :: IO ()
 main = runSqlite ":memory:" $ do
   runMigration migrateAll
+
   csv <- liftIO $ BL.readFile "data.csv"
   _ <- case decodeByName csv of
     Left err -> liftIO $ putStrLn err
     Right (_, v) -> V.forM_ v $ \ p -> do
       pid <- insert $ Person $ name p
-      _   <- insert $ ConsumptionDB pid (bar p) (time p)
-      liftIO $ putStrLn "done"
+      _   <- insert $ Consumption pid (bar p) (time p)
+      pure ()
+
+  people <- selectList [] []
+  liftIO $ print (people :: [Entity Person])
   pure ()
