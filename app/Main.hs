@@ -10,6 +10,7 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE StandaloneDeriving #-}
@@ -17,24 +18,28 @@
 
 module Main where
 
-import Lib
-import Control.Applicative
-import Control.Monad (mzero)
-import Control.Monad.IO.Class  (liftIO)
+-- import Lib
+import Control.Monad.IO.Class  (liftIO, MonadIO(..))
+import Control.Monad.Trans.Reader (ReaderT(..))
+import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
 import Data.Csv
-import Data.Time
+import Data.Text.Lazy.Encoding (decodeUtf8)
+import qualified Data.Text.Lazy as T
 import Data.Time.Format.ISO8601
 import Data.Time (UTCTime)
 import qualified Data.Vector as V
 import Database.Persist
 import Database.Persist.Sqlite
 import Database.Persist.TH
+import Web.Scotty (scotty)
+import qualified Web.Scotty as W
 
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
-Person
+Person json
     name String
+    UniqueName name
     deriving Show
 Consumption
     personId PersonId
@@ -43,9 +48,9 @@ Consumption
 |]
 
 data ConsumptionDTO = ConsumptionDTO
-    { name :: !String
-    , bar  :: !String
-    , time :: !UTCTime
+    { cdtoName :: !String
+    , cdtoBar  :: !String
+    , cdtoTime :: !UTCTime
     }
 
 instance FromNamedRecord ConsumptionDTO where
@@ -57,6 +62,14 @@ instance FromNamedRecord ConsumptionDTO where
         <*> pure t
       Nothing -> fail "Invalid timestamp"
 
+insertConsumption :: MonadIO m => ConsumptionDTO -> ReaderT SqlBackend m (Key Consumption)
+insertConsumption c = do
+  res  <- insertBy $ Person $ cdtoName c
+  pid <- case res of
+    Left (Entity dup _) -> pure dup
+    Right new           -> pure new
+  insert $ Consumption pid (cdtoBar c) (cdtoTime c)
+
 main :: IO ()
 main = runSqlite ":memory:" $ do
   runMigration migrateAll
@@ -64,10 +77,12 @@ main = runSqlite ":memory:" $ do
   csv <- liftIO $ BL.readFile "data.csv"
   _ <- case decodeByName csv of
     Left err -> liftIO $ putStrLn err
-    Right (_, v) -> V.forM_ v $ \ p -> do
-      pid <- insert $ Person $ name p
-      insert $ Consumption pid (bar p) (time p)
+    Right (_, v) -> V.forM_ v $ \ c -> do
+      insertConsumption c
 
   people <- selectList [] []
   liftIO $ print (people :: [Entity Person])
-  pure ()
+
+  liftIO $ scotty 3000 $ do
+    W.get "/people" $ do
+      W.text $ T.concat $ map (decodeUtf8 . A.encode ) (people :: [Entity Person])

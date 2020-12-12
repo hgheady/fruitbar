@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 56b04a5b8678f10b9d8e0d55aaa2b5d424dbb12d874ed8f54c7cf03d52dfc451
+-- hash: 648a0cea4ca37f8237744293b0fea3eedad54cce7840c86c1f2f7bace510dc77
 
 name:           meatbar
 version:        0.1.0.0
@@ -33,7 +33,8 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
     , cassava
     , persistent
@@ -42,6 +43,7 @@ library
     , scotty
     , text
     , time
+    , transformers
     , vector
   default-language: Haskell2010
 
@@ -51,9 +53,10 @@ executable meatbar-exe
       Paths_meatbar
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
     , cassava
     , meatbar
@@ -63,6 +66,7 @@ executable meatbar-exe
     , scotty
     , text
     , time
+    , transformers
     , vector
   default-language: Haskell2010
 
@@ -75,7 +79,8 @@ test-suite meatbar-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      aeson
+    , base >=4.7 && <5
     , bytestring
     , cassava
     , meatbar
@@ -85,5 +90,6 @@ test-suite meatbar-test
     , scotty
     , text
     , time
+    , transformers
     , vector
   default-language: Haskell2010
