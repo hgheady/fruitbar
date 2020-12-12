@@ -24,14 +24,19 @@ dependencies:
 - base >= 4.7 && < 5
 - bytestring
 - cassava
+- esqueleto
+- monad-logger
 - persistent
 - persistent-sqlite
 - persistent-template
+- resourcet
 - scotty
 - text
 - time
 - transformers
+- unliftio-core
 - vector
+- yesod-persistent
 
 library:
   source-dirs: src

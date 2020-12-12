@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 648a0cea4ca37f8237744293b0fea3eedad54cce7840c86c1f2f7bace510dc77
+-- hash: 16d4a5067877ddad8a25d8853afe27bc8cb180e7e03a1ba62abb56d23733f011
 
 name:           meatbar
 version:        0.1.0.0
@@ -37,14 +37,19 @@ library
     , base >=4.7 && <5
     , bytestring
     , cassava
+    , esqueleto
+    , monad-logger
     , persistent
     , persistent-sqlite
     , persistent-template
+    , resourcet
     , scotty
     , text
     , time
     , transformers
+    , unliftio-core
     , vector
+    , yesod-persistent
   default-language: Haskell2010
 
 executable meatbar-exe
@@ -59,15 +64,20 @@ executable meatbar-exe
     , base >=4.7 && <5
     , bytestring
     , cassava
+    , esqueleto
     , meatbar
+    , monad-logger
     , persistent
     , persistent-sqlite
     , persistent-template
+    , resourcet
     , scotty
     , text
     , time
     , transformers
+    , unliftio-core
     , vector
+    , yesod-persistent
   default-language: Haskell2010
 
 test-suite meatbar-test
@@ -83,13 +93,18 @@ test-suite meatbar-test
     , base >=4.7 && <5
     , bytestring
     , cassava
+    , esqueleto
     , meatbar
+    , monad-logger
     , persistent
     , persistent-sqlite
     , persistent-template
+    , resourcet
     , scotty
     , text
     , time
     , transformers
+    , unliftio-core
     , vector
+    , yesod-persistent
   default-language: Haskell2010
