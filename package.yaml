@@ -62,4 +62,7 @@ tests:
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
+    - HUnit
     - meatbar
+    - test-framework
+    - test-framework-hunit

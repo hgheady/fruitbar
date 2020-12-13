@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 16d4a5067877ddad8a25d8853afe27bc8cb180e7e03a1ba62abb56d23733f011
+-- hash: 55b165cce59e245de801a5978a72fc21ab85a9e9fc14d012ffa4a763cbfdee01
 
 name:           meatbar
 version:        0.1.0.0
@@ -89,7 +89,8 @@ test-suite meatbar-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      aeson
+      HUnit
+    , aeson
     , base >=4.7 && <5
     , bytestring
     , cassava
@@ -101,6 +102,8 @@ test-suite meatbar-test
     , persistent-template
     , resourcet
     , scotty
+    , test-framework
+    , test-framework-hunit
     , text
     , time
     , transformers
