@@ -16,19 +16,23 @@
 {-# LANGUAGE DeriveGeneric              #-}
 
 module Lib
-    ( Consumption(..),
-      Response(..),
-      Parsed(..),
-      Person(..),
-      PersonId,
-      ConsumptionId,
-      migrateAll
+    ( Consumption(..)
+    , Response(..)
+    , Parsed(..)
+    , Person(..)
+    , PersonId
+    , ConsumptionId
+    , migrateAll
+    , perDay
+    , streaks
+    , streak
     ) where
 
 import Data.Aeson (Encoding, ToJSON(..), pairs, (.=))
 import Data.Csv hiding ((.=))
-import Data.Text --hiding (map)
-import Data.Time (UTCTime, Day)
+import Data.Maybe (fromJust)
+import Data.Text (Text)--hiding (length, span)
+import Data.Time (UTCTime(..), Day, fromGregorianValid)
 import Data.Time.Format.ISO8601
 -- import Database.Persist
 -- import Database.Persist.Sql (rawSql)
@@ -53,7 +57,6 @@ data Response = PersonRes { pName :: Text }
                 , cBar  :: !Text
                 , cTime :: !UTCTime
                 }
-              | StreakRes { sStreaks :: [[(Day, Integer)]] }
               | ApiRes { rList :: [Response] }
   deriving (Show, Generic)
 
@@ -63,8 +66,6 @@ instance ToJSON Response where
 
   toEncoding (ConsumptionRes n b t) =
     pairs ("name" .= n <> "bar" .= b <> "time" .= t)
-
-  toEncoding (StreakRes ss) = makeStreaks ss
 
   toEncoding (ApiRes l) =
     pairs ("results" .= l)
@@ -80,5 +81,25 @@ instance FromNamedRecord Parsed where
         <*> pure t
       Nothing -> fail "Invalid timestamp"
 
-makeStreaks :: [[(Day, Integer)]] -> Encoding
-makeStreaks foo = pairs ("name" .= foo)
+perDay :: [Response] -> [(Day,Int)]
+perDay all@((ConsumptionRes _ _ time):rest) =
+  let day             = utctDay time
+      (dayCs, restCs) =
+        span (\(ConsumptionRes _ _ t) -> day == (utctDay t)) all
+  in concat[[(day, (length dayCs))], perDay restCs]
+perDay _      = []
+
+streaks :: [(Day, Int)] -> [[(Day, Int)]]
+streaks cs@(c@(_,i):c'@(_,i'):rest) =
+  if i < i'
+  then let s = (c : c' : streak i' rest)
+       in s : (streaks $ drop (length s) rest)
+  else streaks (c' : rest)
+streaks (c:[]) = []
+
+streak :: Int -> [(Day, Int)] -> [(Day, Int)]
+streak i (c@(_,i') : rest) =
+  if i < i'
+  then (c : (streak i' rest))
+  else []
+
