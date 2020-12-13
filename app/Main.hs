@@ -30,12 +30,12 @@ import Control.Monad.Logger
 import Control.Monad.Trans.Resource.Internal-- .ResourceT
 import Data.Aeson (ToJSON(..))
 import Data.Aeson (pairs, (.=))
-import qualified Data.Aeson as A
+-- import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BL
 import Data.Csv hiding ((.=))
 -- import Data.Text hiding (map)
-import Data.Text.Lazy.Encoding (decodeUtf8)
-import Data.Text.Lazy (Text)
+-- import Data.Text.Lazy.Encoding (decodeUtf8)
+import Data.Text hiding (map)
 -- import qualified Data.Text.Lazy as T
 import Data.Time.Format.ISO8601
 import Data.Time (UTCTime)
@@ -58,32 +58,39 @@ Person json
     deriving Show
 Consumption json
     personId PersonId
-    meat String
+    meat Text
     time UTCTime
 |]
 
-data PersonDTO = PersonDTO
-    { pName :: Text
-    } deriving (Show, Generic)
+data Response = PersonRes { pName :: Text }
+              | ConsumptionRes
+                { cName :: !Text
+                , cBar  :: !Text
+                , cTime :: !UTCTime
+                }
+              | ApiRes { rList :: [Response] }
+  deriving (Show, Generic)
 
-instance ToJSON PersonDTO where
-  toEncoding (PersonDTO name) =
+instance ToJSON Response where
+  toEncoding (PersonRes name) =
     pairs ("name" .= name)
 
-data ConsumptionDTO = ConsumptionDTO
-    { cName :: !Text
-    , cBar  :: !String
-    , cTime :: !UTCTime
-    } deriving (Show, Generic)
-
-instance ToJSON ConsumptionDTO where
-  toEncoding (ConsumptionDTO n b t) =
+  toEncoding (ConsumptionRes n b t) =
     pairs ("name" .= n <> "bar" .= b <> "time" .= t)
 
-instance FromNamedRecord ConsumptionDTO where
+  toEncoding (ApiRes l) =
+    pairs ("results" .= l)
+
+data Parsed = Parsed
+              { iName :: !Text
+              , iBar  :: !Text
+              , iTime :: !UTCTime
+              }
+
+instance FromNamedRecord Parsed where
     parseNamedRecord r = r .: "date" >>= \s -> case iso8601ParseM s of
       Just (t :: UTCTime) ->
-        ConsumptionDTO
+        Parsed
         <$> r .: "person"
         <*> r .: "meat-bar-type"
         <*> pure t
@@ -92,8 +99,9 @@ instance FromNamedRecord ConsumptionDTO where
 runDB :: MonadUnliftIO m => ReaderT SqlBackend (NoLoggingT (ResourceT m)) a -> m a
 runDB f = runSqlite "meatbar.db" $ f
 
-insertConsumption :: MonadIO m => ConsumptionDTO -> ReaderT SqlBackend m (Key Consumption)
-insertConsumption (ConsumptionDTO n b t) = do
+insertParsedConsumption :: (MonadIO m, MonadFail m)
+                  => Parsed -> ReaderT SqlBackend m (Key Consumption)
+insertParsedConsumption (Parsed n b t) = do
   res  <- insertBy $ Person $ n
   pid <- case res of
     Left (Entity dup _) -> pure dup
@@ -107,25 +115,13 @@ getConsumptionsDB = rawSql "SELECT ??, ?? \
   \ON consumption.person_id=person.id"
   []
 
-getPeople :: [(Entity Person)] -> [PersonDTO]
-getPeople es = map (\(Entity _ p) -> PersonDTO $ personName p) es
+getPeople :: [(Entity Person)] -> [Response]
+getPeople es = map (\(Entity _ p) -> PersonRes $ personName p) es
 
-getConsumptions :: [(Entity Person, Entity Consumption)] -> [ConsumptionDTO]
+getConsumptions :: [(Entity Person, Entity Consumption)] -> [Response]
 getConsumptions es = map (\(p, c) ->
-  ConsumptionDTO (personName p) (consumptionMeat c) (consumptionTime c))
+  ConsumptionRes (personName p) (consumptionMeat c) (consumptionTime c))
   $ map (\((Entity _ p), (Entity _ c)) -> (p, c)) es
-
--- data Response = Response
---     { rName :: Text,
---       rList :: [ToJSON]
---     } deriving (Show, Generic)
-
--- instance ToJSON Response where
---   toEncoding (Response n l) =
---     pairs (n .= l)
-
--- respond :: Text -> [ToJSON] -> ByteString
--- respond os = 
 
 main :: IO ()
 main = do
@@ -135,12 +131,12 @@ main = do
   _ <- case decodeByName csv of
     Left err -> liftIO $ putStrLn err
     Right (_, v) -> V.forM_ v $ \ c -> do
-      runDB (insertConsumption c)
+      runDB (insertParsedConsumption c)
 
   scotty 3000 $ do
     W.get "/people" $ do
       ps <- liftIO $ runDB (selectList [] [])
-      W.text $ decodeUtf8 $ A.encode $ getPeople ps
+      W.json $ ApiRes $ getPeople ps
     W.get "/consumptions" $ do
       cs <- liftIO $ runDB getConsumptionsDB
-      W.text $ decodeUtf8 $ A.encode $ getConsumptions cs
+      W.json $ ApiRes $ getConsumptions cs
