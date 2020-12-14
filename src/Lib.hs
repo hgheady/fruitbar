@@ -49,15 +49,11 @@ Consumption json
     time UTCTime
 |]
 
-data Response = PersonRes { pName :: Text }
-              | ConsumptionRes
-                { cName :: !Text
-                , cBar  :: !Text
-                , cTime :: !UTCTime
-                }
+data Response = PersonRes Text
+              | ConsumptionRes Text Text UTCTime
               | StreakDay (Day, Int)
               | StreakRes [Response]
-              | ApiRes { rList :: [Response] }
+              | ApiRes [Response]
   deriving (Show, Generic)
 
 instance ToJSON Response where
