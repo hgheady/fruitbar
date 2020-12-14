@@ -46,6 +46,10 @@ consumptionsRes es = map (\(p, c) ->
   ConsumptionRes (personName p) (consumptionMeat c) (consumptionTime c))
   $ map (\((Entity _ p), (Entity _ c)) -> (p, c)) es
 
+streaksRes :: [(Entity Person, Entity Consumption)] -> [Response]
+streaksRes es = streakRes $ streaks $ perDay $ consumptionsRes es
+
+
 main :: IO ()
 main = do
   runDB $ runMigration migrateAll
@@ -63,6 +67,6 @@ main = do
     W.get "/consumptions" $ do
       cs <- liftIO $ runDB getConsumptionsDB
       W.json $ ApiRes $ consumptionsRes cs
-    -- W.get "/consumptions/streaks" $ do
-    --   cs <- liftIO $ runDB getConsumptionsDB
-    --   W.json $ ApiRes $ getStreaks cs
+    W.get "/consumptions/streaks" $ do
+      cs <- liftIO $ runDB getConsumptionsDB
+      W.json $ ApiRes $ streaksRes cs
