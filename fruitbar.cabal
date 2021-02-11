@@ -4,13 +4,13 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 55b165cce59e245de801a5978a72fc21ab85a9e9fc14d012ffa4a763cbfdee01
+-- hash: f7f2948cbd071de6e607d713b2ba1c0357f4a3eea9a9cc2ba77a6623eb3e1665
 
-name:           meatbar
+name:           fruitbar
 version:        0.1.0.0
-description:    Please see the README on GitHub at <https://github.com/githubuser/meatbar#readme>
-homepage:       https://github.com/githubuser/meatbar#readme
-bug-reports:    https://github.com/githubuser/meatbar/issues
+description:    Please see the README on GitHub at <https://github.com/githubuser/fruitbar#readme>
+homepage:       https://github.com/githubuser/fruitbar#readme
+bug-reports:    https://github.com/githubuser/fruitbar/issues
 author:         Author name here
 maintainer:     example@example.com
 copyright:      2020 Author name here
@@ -23,13 +23,13 @@ extra-source-files:
 
 source-repository head
   type: git
-  location: https://github.com/githubuser/meatbar
+  location: https://github.com/githubuser/fruitbar
 
 library
   exposed-modules:
       Lib
   other-modules:
-      Paths_meatbar
+      Paths_fruitbar
   hs-source-dirs:
       src
   build-depends:
@@ -52,10 +52,10 @@ library
     , yesod-persistent
   default-language: Haskell2010
 
-executable meatbar-exe
+executable fruitbar-exe
   main-is: Main.hs
   other-modules:
-      Paths_meatbar
+      Paths_fruitbar
   hs-source-dirs:
       app
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
@@ -65,7 +65,7 @@ executable meatbar-exe
     , bytestring
     , cassava
     , esqueleto
-    , meatbar
+    , fruitbar
     , monad-logger
     , persistent
     , persistent-sqlite
@@ -80,11 +80,11 @@ executable meatbar-exe
     , yesod-persistent
   default-language: Haskell2010
 
-test-suite meatbar-test
+test-suite fruitbar-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      Paths_meatbar
+      Paths_fruitbar
   hs-source-dirs:
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
@@ -95,7 +95,7 @@ test-suite meatbar-test
     , bytestring
     , cassava
     , esqueleto
-    , meatbar
+    , fruitbar
     , monad-logger
     , persistent
     , persistent-sqlite

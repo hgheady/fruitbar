@@ -45,7 +45,7 @@ Person json
     deriving Show
 Consumption json
     personId PersonId
-    meat Text
+    fruit Text
     time UTCTime
 |]
 
@@ -78,7 +78,7 @@ instance C.FromNamedRecord Parsed where
       Just (t :: UTCTime) ->
         Parsed
         <$> r C..: "person"
-        <*> r C..: "meat-bar-type"
+        <*> r C..: "fruit-bar-type"
         <*> pure t
       Nothing -> fail "Invalid timestamp"
 

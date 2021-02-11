@@ -18,7 +18,7 @@ import qualified Web.Scotty as W
 
 
 runDB :: MonadUnliftIO m => ReaderT SqlBackend (NoLoggingT (ResourceT m)) a -> m a
-runDB f = runSqlite "meatbar.db" $ f
+runDB f = runSqlite "fruitbar.db" $ f
 
 insertParsedConsumption :: (MonadIO m, MonadFail m)
                   => Parsed -> ReaderT SqlBackend m (Key Consumption)
@@ -43,7 +43,7 @@ peopleRes es = map (\(Entity _ p) -> PersonRes $ personName p) es
 
 consumptionsRes :: [(Entity Person, Entity Consumption)] -> [Response]
 consumptionsRes es = map (\(p, c) ->
-  ConsumptionRes (personName p) (consumptionMeat c) (consumptionTime c))
+  ConsumptionRes (personName p) (consumptionFruit c) (consumptionTime c))
   $ map (\((Entity _ p), (Entity _ c)) -> (p, c)) es
 
 streaksRes :: [(Entity Person, Entity Consumption)] -> [Response]

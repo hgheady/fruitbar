@@ -1,3 +1,3 @@
-# Changelog for meatbar
+# Changelog for fruitbar
 
 ## Unreleased changes
