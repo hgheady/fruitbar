@@ -13,6 +13,7 @@ import qualified Data.Text as T
 import qualified Data.Vector as V
 import Database.Persist
 import Database.Persist.Sqlite
+import Network.HTTP.Types.Status
 import Web.Scotty (scotty)
 import qualified Web.Scotty as W
 
@@ -75,4 +76,5 @@ main = do
     W.post "/consumptions" $ do
       (ConsumptionPost n b t) <- W.jsonData :: W.ActionM Request
       _ <- liftIO $ runDB (insertParsedConsumption $ Parsed n b t)
+      W.status status201
       W.json $ consumptions201 $ ConsumptionRes n b t
