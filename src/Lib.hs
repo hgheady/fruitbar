@@ -17,6 +17,7 @@
 
 module Lib
     ( Consumption(..)
+    , Request(..)
     , Response(..)
     , Parsed(..)
     , Person(..)
@@ -31,9 +32,8 @@ module Lib
 
 import Data.Aeson
 import qualified Data.Csv as C
-import Data.Maybe (fromJust)
 import Data.Text (Text)
-import Data.Time (UTCTime(..), Day, fromGregorianValid)
+import Data.Time (UTCTime(..), Day)
 import Data.Time.Format.ISO8601
 import Database.Persist.TH
 import GHC.Generics
@@ -49,8 +49,24 @@ Consumption json
     time UTCTime
 |]
 
+data Request = ConsumptionPost Text Text UTCTime deriving (Show, Generic)
+
+instance FromJSON Request where
+  parseJSON (Object v) = v .: "date" >>= \s -> case iso8601ParseM s of
+    Just (t :: UTCTime) -> ConsumptionPost
+                           <$> v .: "name"
+                           <*> v .: "fruit-bar-type"
+                           <*> pure t
+    Nothing -> fail "Invalid timestamp"
+  parseJSON _ = fail "Malformed JSON body"
+
+instance ToJSON Request where
+  toEncoding (ConsumptionPost n b t) =
+    pairs ("name" .= n <> "bar" .= b <> "time" .= t)
+
 data Response = PersonRes Text
               | ConsumptionRes Text Text UTCTime
+              | Consumption201 Response
               | StreakDay (Day, Int)
               | StreakRes [Response]
               | ApiRes [Response]
@@ -62,6 +78,9 @@ instance ToJSON Response where
 
   toEncoding (ConsumptionRes n b t) =
     pairs ("name" .= n <> "bar" .= b <> "time" .= t)
+
+  toEncoding (Consumption201 c) =
+    pairs ("created" .= c)
 
   toEncoding (StreakDay (d, n)) =
     pairs ("date" .= d <> "consumed" .= n)

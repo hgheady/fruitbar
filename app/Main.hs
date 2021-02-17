@@ -49,6 +49,8 @@ consumptionsRes es = map (\(p, c) ->
 streaksRes :: [(Entity Person, Entity Consumption)] -> [Response]
 streaksRes es = streakRes $ streaks $ perDay $ consumptionsRes es
 
+consumptions201 :: Response -> Response
+consumptions201 = Consumption201
 
 main :: IO ()
 main = do
@@ -70,3 +72,7 @@ main = do
     W.get "/consumptions/streaks" $ do
       cs <- liftIO $ runDB getConsumptionsDB
       W.json $ ApiRes $ streaksRes cs
+    W.post "/consumptions" $ do
+      (ConsumptionPost n b t) <- W.jsonData :: W.ActionM Request
+      _ <- liftIO $ runDB (insertParsedConsumption $ Parsed n b t)
+      W.json $ consumptions201 $ ConsumptionRes n b t
